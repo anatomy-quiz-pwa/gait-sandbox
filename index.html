@@ -1742,24 +1742,90 @@ function computeSkeleton(){
 //  DRAW
 // ══════════════════════════════════════════
 function bone(x1,y1,x2,y2,w,col,alpha=1){
-  const a=Math.atan2(y2-y1,x2-x1),p=Math.PI/2;
+  const a=Math.atan2(y2-y1,x2-x1), p=Math.PI/2;
+  const len=Math.sqrt((x2-x1)**2+(y2-y1)**2);
   cx.globalAlpha=alpha;
+  // Bone shape: wide epiphysis at each end, narrow diaphysis in middle
+  // Use bezier to make organic spindle shape
+  const w1=w, w2=w*.55, wMid=w*.35; // proximal end, distal end, midshaft
+  const nx=Math.cos(a+p), ny=Math.sin(a+p);
+  const ux=Math.cos(a), uy=Math.sin(a);
+  const t=0.28; // fraction from each end where narrowing starts
+  const mx=( x1+x2)*.5, my=(y1+y2)*.5;
+
+  cx.save();
+  // Shadow/depth
+  cx.shadowColor='rgba(0,0,0,.18)'; cx.shadowBlur=3; cx.shadowOffsetY=1;
+
   cx.beginPath();
-  cx.moveTo(x1+w*Math.cos(a+p),y1+w*Math.sin(a+p));
-  cx.lineTo(x2+w*.48*Math.cos(a+p),y2+w*.48*Math.sin(a+p));
-  cx.lineTo(x2-w*.48*Math.cos(a+p),y2-w*.48*Math.sin(a+p));
-  cx.lineTo(x1-w*Math.cos(a+p),y1-w*Math.sin(a+p));
-  cx.closePath(); cx.fillStyle=col; cx.fill(); cx.globalAlpha=1;
+  // Start from proximal right
+  cx.moveTo(x1+nx*w1, y1+ny*w1);
+  // Proximal right → midshaft right (bezier narrowing)
+  cx.bezierCurveTo(
+    x1+ux*len*t+nx*w1, y1+uy*len*t+ny*w1,
+    mx+nx*wMid, my+ny*wMid,
+    mx+nx*wMid, my+ny*wMid
+  );
+  // Midshaft right → distal right (bezier widening)
+  cx.bezierCurveTo(
+    mx+nx*wMid, my+ny*wMid,
+    x2-ux*len*t+nx*w2, y2-uy*len*t+ny*w2,
+    x2+nx*w2, y2+ny*w2
+  );
+  // Distal cap
+  cx.lineTo(x2-nx*w2, y2-ny*w2);
+  // Distal left → midshaft left
+  cx.bezierCurveTo(
+    x2-ux*len*t-nx*w2, y2-uy*len*t-ny*w2,
+    mx-nx*wMid, my-ny*wMid,
+    mx-nx*wMid, my-ny*wMid
+  );
+  // Midshaft left → proximal left
+  cx.bezierCurveTo(
+    mx-nx*wMid, my-ny*wMid,
+    x1+ux*len*t-nx*w1, y1+uy*len*t-ny*w1,
+    x1-nx*w1, y1-ny*w1
+  );
+  cx.closePath();
+  cx.fillStyle=col; cx.fill();
+
+  // Highlight ridge along bone (cortical bone feel)
+  cx.shadowColor='transparent';
+  cx.beginPath();
+  cx.moveTo(x1+nx*w1*.45, y1+ny*w1*.45);
+  cx.bezierCurveTo(
+    x1+ux*len*t+nx*w1*.3, y1+uy*len*t+ny*w1*.3,
+    mx+nx*wMid*.5, my+ny*wMid*.5,
+    mx+nx*wMid*.5, my+ny*wMid*.5
+  );
+  cx.bezierCurveTo(
+    mx+nx*wMid*.5, my+ny*wMid*.5,
+    x2-ux*len*t+nx*w2*.3, y2-uy*len*t+ny*w2*.3,
+    x2+nx*w2*.45, y2+ny*w2*.45
+  );
+  cx.strokeStyle='rgba(255,255,255,.22)'; cx.lineWidth=w*.35; cx.lineCap='round';
+  cx.stroke();
+
+  cx.restore();
+  cx.globalAlpha=1;
 }
 
 function jt(x,y,r,col,label,alpha=1){
   cx.globalAlpha=alpha;
+  // Outer ring (cartilage)
+  cx.beginPath(); cx.arc(x,y,r+1.5,0,Math.PI*2);
+  cx.fillStyle='rgba(200,195,185,.55)'; cx.fill();
+  // Main joint ball
+  const g=cx.createRadialGradient(x-r*.3,y-r*.3,r*.1,x,y,r*1.1);
+  g.addColorStop(0,'rgba(255,255,255,.55)');
+  g.addColorStop(0.4,col);
+  g.addColorStop(1,'rgba(0,0,0,.35)');
   cx.beginPath(); cx.arc(x,y,r,0,Math.PI*2);
-  cx.fillStyle=col; cx.fill();
-  cx.strokeStyle='#0d0e10'; cx.lineWidth=1.8; cx.stroke();
+  cx.fillStyle=g; cx.fill();
+  cx.strokeStyle='rgba(0,0,0,.25)'; cx.lineWidth=1; cx.stroke();
   if(label){
-    cx.fillStyle='rgba(80,65,40,.6)'; cx.font='10px "DM Mono",monospace';
-    cx.textAlign='left'; cx.fillText(label,x+r+4,y+4);
+    cx.fillStyle='rgba(80,65,40,.7)'; cx.font='bold 10px "DM Mono",monospace';
+    cx.textAlign='left'; cx.fillText(label,x+r+5,y+4);
   }
   cx.globalAlpha=1;
 }
@@ -1927,12 +1993,28 @@ function draw(){
   cx.strokeStyle='#c8b890'; cx.lineWidth=9; cx.lineCap='round'; cx.stroke();
   cx.strokeStyle='#d4c8a0'; cx.lineWidth=9; cx.stroke();
 
-  // Ribcage
+  // Ribcage — anatomical thorax with rib arcs
   const rcX=(sk.pel.x+sk.sho.x)*.5+2, rcY=sk.sho.y+(sk.pel.y-sk.sho.y)*.30;
-  const rcH=(sk.pel.y-sk.sho.y)*.50;
-  cx.beginPath(); cx.ellipse(rcX,rcY,11,rcH,sk.trunkLean,0,Math.PI*2);
-  cx.fillStyle='rgba(122,106,148,.08)'; cx.strokeStyle='rgba(155,143,222,.35)';
+  const rcH=(sk.pel.y-sk.sho.y)*.50, rcW=13;
+  // Thorax outline
+  cx.save(); cx.translate(rcX,rcY); cx.rotate(sk.trunkLean);
+  cx.beginPath(); cx.ellipse(0,0,rcW,rcH,0,0,Math.PI*2);
+  cx.fillStyle='rgba(122,106,148,.07)'; cx.strokeStyle='rgba(155,143,222,.28)';
   cx.lineWidth=1.5; cx.fill(); cx.stroke();
+  // Rib arcs (4 pairs, right-side visible)
+  const ribColors='rgba(190,178,148,.45)';
+  for(let i=0;i<4;i++){
+    const ry=-rcH*.55+rcH*.32*i;
+    const rw=rcW*(0.9-i*.04);
+    cx.beginPath();
+    cx.moveTo(-rw*.1, ry);
+    cx.bezierCurveTo(rw*.5,ry, rw*1.2,ry+rcH*.08, rw*.9,ry+rcH*.14);
+    cx.strokeStyle=ribColors; cx.lineWidth=1.2; cx.stroke();
+  }
+  // Sternum line (胸骨)
+  cx.beginPath(); cx.moveTo(0,-rcH*.6); cx.lineTo(0,rcH*.6);
+  cx.strokeStyle='rgba(190,178,148,.3)'; cx.lineWidth=1.5; cx.stroke();
+  cx.restore();
 
   // Pelvis
   cx.beginPath(); cx.ellipse(sk.pel.x,sk.pel.y,20,11,sk.trunkLean,0,Math.PI*2);
@@ -1956,22 +2038,63 @@ function draw(){
   // Neck
   bone(sk.sho.x,sk.sho.y,sk.neck.x,sk.neck.y,4.5,'#c8b890');
 
-  // Head — simple side-profile circle with nose
+  // Head — anatomical skull side-profile
   const hx=sk.head.x, hy=sk.head.y, hr=sk.headR;
-  // Head circle
-  cx.beginPath(); cx.arc(hx,hy,hr,0,Math.PI*2);
-  cx.fillStyle='#d4c8a0'; cx.fill();
-  cx.strokeStyle='#8a7a50'; cx.lineWidth=1.4; cx.stroke();
-  // Eye (filled dot)
-  cx.beginPath(); cx.arc(hx+hr*.32,hy-hr*.18,hr*.12,0,Math.PI*2);
-  cx.fillStyle='#2c2010'; cx.fill();
-  // Nose bump (side profile)
+  cx.save();
+  // Cranium (slightly ovoid, wider at back)
   cx.beginPath();
-  cx.moveTo(hx+hr*.72,hy+hr*.05);
-  cx.quadraticCurveTo(hx+hr*1.08,hy-hr*.1,hx+hr*.88,hy+hr*.32);
-  cx.quadraticCurveTo(hx+hr*.78,hy+hr*.38,hx+hr*.6,hy+hr*.3);
-  cx.fillStyle='#c8b890'; cx.fill();
-  cx.strokeStyle='#8a7a50'; cx.lineWidth=1; cx.stroke();
+  cx.ellipse(hx-hr*.08, hy-hr*.05, hr*1.02, hr*.95, 0, 0, Math.PI*2);
+  cx.fillStyle='#ddd6b8'; cx.fill();
+  cx.strokeStyle='#8a7a52'; cx.lineWidth=1.3; cx.stroke();
+  // Cranium highlight
+  cx.beginPath();
+  cx.ellipse(hx-hr*.28, hy-hr*.32, hr*.38, hr*.24, -0.5, 0, Math.PI*2);
+  cx.fillStyle='rgba(255,255,255,.28)'; cx.fill();
+
+  // Zygomatic arch (顴弓) – curved line under eye
+  cx.beginPath();
+  cx.moveTo(hx+hr*.32, hy-hr*.1);
+  cx.quadraticCurveTo(hx+hr*.72, hy+hr*.02, hx+hr*.62, hy+hr*.22);
+  cx.strokeStyle='rgba(120,105,68,.55)'; cx.lineWidth=1.5; cx.stroke();
+
+  // Mandible (下頜) – jaw outline
+  cx.beginPath();
+  cx.moveTo(hx-hr*.05, hy+hr*.28);
+  cx.quadraticCurveTo(hx+hr*.3, hy+hr*.55, hx+hr*.7, hy+hr*.38);
+  cx.quadraticCurveTo(hx+hr*.92, hy+hr*.18, hx+hr*.88, hy+hr*.02);
+  cx.strokeStyle='#8a7a52'; cx.lineWidth=1.4; cx.stroke();
+
+  // Maxilla / upper teeth line (subtle)
+  cx.beginPath();
+  cx.moveTo(hx+hr*.55, hy+hr*.25);
+  cx.lineTo(hx+hr*.82, hy+hr*.12);
+  cx.strokeStyle='rgba(120,105,68,.35)'; cx.lineWidth=1; cx.stroke();
+
+  // Eye socket (orbital ridge)
+  cx.beginPath();
+  cx.ellipse(hx+hr*.3, hy-hr*.18, hr*.2, hr*.15, 0.1, 0, Math.PI*2);
+  cx.fillStyle='rgba(40,30,15,.55)'; cx.fill();
+  cx.strokeStyle='rgba(80,68,40,.6)'; cx.lineWidth=1; cx.stroke();
+  // Eye highlight
+  cx.beginPath(); cx.arc(hx+hr*.23, hy-hr*.22, hr*.05, 0, Math.PI*2);
+  cx.fillStyle='rgba(255,255,255,.5)'; cx.fill();
+
+  // Nasal bone (鼻骨) – side profile bump
+  cx.beginPath();
+  cx.moveTo(hx+hr*.62, hy-hr*.05);
+  cx.lineTo(hx+hr*.92, hy+hr*.05);
+  cx.lineTo(hx+hr*.98, hy+hr*.18);
+  cx.lineTo(hx+hr*.88, hy+hr*.26);
+  cx.fillStyle='#cdc5a0'; cx.strokeStyle='#8a7a52'; cx.lineWidth=1.1;
+  cx.fill(); cx.stroke();
+
+  // Forehead suture line (矢狀縫 hint)
+  cx.beginPath();
+  cx.moveTo(hx+hr*.1, hy-hr*.9);
+  cx.lineTo(hx+hr*.05, hy-hr*.42);
+  cx.strokeStyle='rgba(120,105,68,.18)'; cx.lineWidth=.8; cx.stroke();
+
+  cx.restore();
 
   // Joints labeled
   jt(sk.pel.x,sk.pel.y,9,'#5a4a7a','髖');
