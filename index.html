@@ -425,8 +425,15 @@ canvas{display:block;width:100%;height:100%;}
       <div class="score-bar"><div class="score-fill" id="t3-bar" style="width:0%;background:var(--amber)"></div></div>
       <div class="score-num" id="t3-score" style="color:var(--amber)">— 分</div>
     </div>
+    <div class="task-card" id="task-t4" onclick="setTask('t4',this)" style="border:1.5px solid var(--pur);background:rgba(90,74,122,.06);">
+      <div class="task-name">⚖️ 力臂平衡</div>
+      <div class="task-desc">關節偏置大師——改變力臂降低全身力矩</div>
+      <div class="task-metric" id="t4-metric">三關節力矩和：—</div>
+      <div class="score-bar"><div class="score-fill" id="t4-bar" style="width:0%;background:var(--pur)"></div></div>
+      <div class="score-num" id="t4-score" style="color:var(--pur)">— 分</div>
+    </div>
     <div style="font-size:9px;color:var(--mu);font-family:var(--mono);margin-top:6px;line-height:1.6;
-      padding:7px 9px;background:rgba(0,0,0,.04);border-radius:5px;border-left:2px solid var(--amber);"
+      padding:7px 9px;background:rgba(0,0,0,.04);border-radius:5px;border-left:2px solid var(--pur);"
       id="task-hint">點選上方任一任務開始挑戰。</div>
 
     <!-- 標準答案區 -->
@@ -1392,11 +1399,14 @@ const TASK_CONFIG={
       hint:'提示：試試③站立中期的姿勢——GRF 通過關節附近，力矩臂最小，最省力。\n調整 GRF 位置讓延伸線更接近關節中心。',
       ibox:'🚶 任務：省力走路\n\n目標：讓踝+膝+髖的總功率消耗最低。\n\n如何得高分：\n· 減少每個關節的力矩臂（調整GRF位置）\n· 減少不必要的關節彎曲\n· 讓 GRF 作用線通過關節中心'},
   t2:{name:'減少膝蓋壓力',
-      hint:'提示：GRF 距離膝關節越遠，膝力矩越大。試試讓 GRF 作用線更靠近膝關節。',
-      ibox:'🦵 任務：減少膝蓋壓力\n\n目標：讓膝關節的外力矩盡可能低。\n\n如何得高分：\n· 調整 GRF 作用位置靠近膝關節\n· 減少膝屈曲角度\n· 注意：膝力矩下降的代價是什麼？'},
+      hint:'💡 力臂（moment arm）= GRF 到關節的距離。距離越短，力矩越小。試試讓 GRF 垂直線更靠近膝關節。',
+      ibox:'🦵 任務：減少膝蓋壓力｜力臂調整\n\n目標：讓膝關節的外力矩盡可能低。\n\n🎯 核心機制（力臂 Moment Arm）：\n外力矩 = GRF × 力臂距離\n\n如何得高分：\n① 拖動橘色「GRF位置」滑桿→膝蓋正下方\n   （觀察：力臂縮短 → 膝力矩↓）\n② 減少膝屈曲角度\n③ 但要注意：膝力矩↓ 時，踝力矩會↑（代償轉移）'},
   t3:{name:'最大化推進力',
       hint:'提示：踝先背屈（+15°以上）蓄力，再蹠屈釋放。同時確保 GRF 有向前的推進分力。',
       ibox:'⚡ 任務：最大化推進力\n\n目標：讓踝關節的功率輸出最高。\n\n如何得高分：\n· 踝背屈角度要夠大（蓄力）\n· 髖後伸讓身體往前傾\n· GRF 前後分力調整為正值（推進方向）'},
+  t4:{name:'⚖️ 力臂平衡',
+      hint:'💡 把 GRF 位置想成「槓桿的支點」。改變位置會同時改變三個關節的力臂——如何在三者之間取得平衡？',
+      ibox:'⚖️ 任務：力臂平衡｜關節偏置大師\n\n目標：理解力臂（moment arm）如何決定關節負荷。\n\n🔑 核心概念：\n「力臂」= 從關節中心到 GRF 作用線的垂直距離\n外力矩 = GRF × 力臂\n\n🎯 挑戰：\n拖動「GRF位置」滑桿，讓三個關節的力矩都降到最低。\n\n📊 即時反饋：\n左側圖表上方的「力臂距離」會即時更新——\n越短越綠 = 力矩越小'},
 };
 
 
@@ -1471,6 +1481,71 @@ const TASK_ANSWERS={
   · 踝關節僵硬 → 背屈受限，蓄能不足
   · 老年人腓腸肌萎縮 → 步幅縮短、步速下降`
   },
+  t4:{
+    title:'⚖️ 力臂平衡｜標準答案 — 理解關節偏置',
+    content:`核心機制：外力矩 = GRF × 力臂（moment arm）
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔑 「力臂」是什麼？
+  = 從關節中心到 GRF 作用線的垂直距離
+
+  力臂短 → 力矩小 → 肌肉負荷低 ✅
+  力臂長 → 力矩大 → 肌肉負荷高 ⚠️
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 GRF 位置對三個關節的影響：
+
+① 踝關節：
+  · GRF 在腳趾（+15°）→ 距踝最遠 → 力臂最長 → 踝力矩最大
+  · GRF 在踝下方（0°）→ 力臂為零 → 踝力矩=0 ✅
+
+② 膝關節：
+  · GRF 在膝前方（-10°）→ 膝力矩大（屈曲）
+  · GRF 在膝下方（0°）→ 力臂為零 → 膝力矩=0 ✅
+
+③ 髖關節：
+  · GRF 在髖後方（+20°）→ 髖力矩大（伸展）
+  · GRF 在髖下方（0°）→ 力臂為零 → 髖力矩=0 ✅
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+⚡ 完美方案（理論上）：
+  讓 GRF 通過三個關節中心
+  → 三個力臂同時為零
+  → 三個力矩都=0
+  → 最省力！
+
+但在真實步態中：不可能同時通過三個關節
+→ 這就是為什麼步態要「彎膝」：
+  膝屈曲讓膝蓋位置改變
+  → 調整力臂平衡
+  → 在三個關節間「協調」負荷
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 臨床應用（代償的根源）：
+
+膝痛患者自救方案：
+「重心前移」（膝更彎）
+  → GRF 靠近膝蓋
+  → 膝力臂縮短 ✅
+  → 膝力矩下降 ✅
+
+但代價：
+  → 踝力臂變長 ⚠️
+  → 踝力矩上升 ⚠️
+  → 長期：足底筋膜炎、踝關節炎
+
+這就是「代償的本質」：疼痛不是消失，而是轉移！
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 實踐挑戰：
+嘗試用「GRF位置」滑桿，
+找到使三個力矩之和最小的位置
+→ 這就是你個人的「最優步態」`
+  },
 };
 
 let answerOpen=false;
@@ -1514,18 +1589,32 @@ function updateTaskScores(mA,mK,mH,pA,pK,pH){
   const s1=Math.max(0,Math.round(100-total*1.2));
   const s2=Math.max(0,Math.round(100-Math.abs(mK)*0.7));
   const s3=Math.max(0,Math.min(100,Math.round(pA*2.5+30)));
+  // t4: 力臂平衡 = 三個力矩都低時得高分
+  const momentBalance=Math.abs(mA)+Math.abs(mK)+Math.abs(mH);
+  const s4=Math.max(0,Math.round(100-momentBalance*0.5));
 
   const setScore=(id,score,col)=>{
-    document.getElementById(id+'-bar').style.width=score+'%';
-    document.getElementById(id+'-bar').style.background=col;
-    document.getElementById(id+'-score').textContent=score+' 分';
+    const bar=document.getElementById(id+'-bar');
+    const scoreEl=document.getElementById(id+'-score');
+    if(bar&&scoreEl){
+      bar.style.width=score+'%';
+      bar.style.background=col;
+      scoreEl.textContent=score+' 分';
+    }
   };
   setScore('t1',s1,'var(--green)');
   setScore('t2',s2,'var(--blue)');
   setScore('t3',s3,'var(--amber)');
-  document.getElementById('t1-metric').textContent='總功率：'+(total>0?total.toFixed(0)+'W':'—');
-  document.getElementById('t2-metric').textContent='膝力矩：'+Math.abs(mK).toFixed(0)+' Nm';
-  document.getElementById('t3-metric').textContent='踝功率：'+pA.toFixed(0)+' W';
+  setScore('t4',s4,'var(--pur)');
+
+  const setMetric=(id,text)=>{
+    const el=document.getElementById(id+'-metric');
+    if(el) el.textContent=text;
+  };
+  setMetric('t1-metric','總功率：'+(total>0?total.toFixed(0)+'W':'—'));
+  setMetric('t2-metric','膝力矩：'+Math.abs(mK).toFixed(0)+' Nm');
+  setMetric('t3-metric','踝功率：'+pA.toFixed(0)+' W');
+  setMetric('t4-metric','三關節力矩和：'+momentBalance.toFixed(0)+' Nm');
 }
 
 
