@@ -394,7 +394,7 @@ canvas{display:block;width:100%;height:100%;}
   </div>
 
   <!-- ③ CHALLENGE MODE -->
-  <div class="sec hidden" id="sec-challenge">
+  <div class="sec hidden" id="sec-challenge" style="display:flex;flex-direction:column;overflow:hidden;">
     <div style="background:rgba(240,160,48,.08);border:.5px solid rgba(240,160,48,.3);border-radius:8px;padding:10px 11px;margin-bottom:10px;">
       <div style="font-size:11px;font-weight:500;color:var(--amber);margin-bottom:5px;">🎯 挑戰：你能找到最佳步態嗎？</div>
       <div style="font-size:9px;color:#6a4e18;font-family:var(--mono);line-height:1.7;">
@@ -404,6 +404,7 @@ canvas{display:block;width:100%;height:100%;}
         → 看下方因果鏈面板理解原因
       </div>
     </div>
+    <div style="overflow-y:auto;flex:1;">
     <div class="task-card on" id="task-t1" onclick="setTask('t1',this)">
       <div class="task-name">🚶 省力走路</div>
       <div class="task-desc">讓總能量消耗最低</div>
@@ -448,6 +449,29 @@ canvas{display:block;width:100%;height:100%;}
         font-family:var(--mono);line-height:1.75;color:var(--tx);
         background:rgba(255,252,245,.9);white-space:pre-line;
         border-top:.5px solid rgba(90,70,30,.15);">
+      </div>
+    </div>
+    </div>
+
+    <!-- FAQ section at bottom of challenge mode -->
+    <div style="border-top:1px solid var(--b);margin-top:auto;padding-top:8px;margin-bottom:8px;">
+      <button onclick="toggleFaqSection()" style="width:100%;padding:8px 0;background:none;border:none;cursor:pointer;text-align:left;font-size:11px;font-weight:600;color:var(--tx);display:flex;justify-content:space-between;align-items:center;">
+        <span>❓ 常見問答</span>
+        <span id="faq-section-arrow" style="font-size:10px;transition:transform .2s;">▶</span>
+      </button>
+      <div id="faq-collapsible" style="display:none;font-size:9px;max-height:200px;overflow-y:auto;margin-top:8px;">
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">GRF 為什麼有兩個峰值？<span class="faq-arrow">▶</span></button>
+          <div class="faq-a">走路時 GRF 的雙峰來自兩個力學事件：<br><strong>第一峰（約 110% BW）</strong>：腳跟著地。<strong>第二峰（約 115% BW）</strong>：踝關節推離地面。</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">為什麼用「% Gait Cycle」？<span class="faq-arrow">▶</span></button>
+          <div class="faq-a">不同人走路速度不同。以步態週期百分比標準化後，任何人都能在同一尺度比較。</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q" onclick="toggleFaq(this)">力矩和功率有什麼不同？<span class="faq-arrow">▶</span></button>
+          <div class="faq-a"><strong>力矩</strong>：旋轉力，代表「需要多少力來對抗」。<strong>功率</strong>：力矩 × 角速度，代表能量在流動。</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1140,6 +1164,18 @@ function toggleFaq(btn){
   document.querySelectorAll('.faq-a').forEach(a=>a.classList.remove('visible'));
   document.querySelectorAll('.faq-q').forEach(b=>b.classList.remove('open'));
   if(!isOpen){ ans.classList.add('visible'); btn.classList.add('open'); }
+}
+
+function toggleFaqSection(){
+  const faqDiv = document.getElementById('faq-collapsible');
+  const arrow = document.getElementById('faq-section-arrow');
+  if(faqDiv.style.display==='none'){
+    faqDiv.style.display='block';
+    arrow.style.transform='rotate(90deg)';
+  }else{
+    faqDiv.style.display='none';
+    arrow.style.transform='rotate(0deg)';
+  }
 }
 
 function startObserve(){
